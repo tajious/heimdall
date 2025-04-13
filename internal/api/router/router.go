@@ -48,4 +48,6 @@ func (r *Router) SetupRoutes() {
 	})
 	protected.Put("/tenants/:tenant_id/config", r.tenantHandler.UpdateTenantConfig)
 	protected.Get("/tenants/:tenant_id/users", r.authHandler.ListUsers)
+	protected.Get("/tenants", r.tenantHandler.ListTenants)
+	protected.Get("/tenants/:tenant_id", r.tenantHandler.GetTenant)
 }

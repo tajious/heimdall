@@ -20,10 +20,17 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	dsn := storage.BuildDSN(cfg.Database)
-	store, err := storage.NewPostgresStorage(dsn)
-	if err != nil {
-		log.Fatalf("Failed to initialize storage: %v", err)
+	var store storage.Storage
+	if cfg.Server.Environment == "development" {
+		log.Println("Using in-memory storage for development")
+		store = storage.NewInMemoryStorage()
+	} else {
+		log.Println("Using PostgreSQL storage for production")
+		dsn := storage.BuildDSN(cfg.Database)
+		store, err = storage.NewPostgresStorage(dsn)
+		if err != nil {
+			log.Fatalf("Failed to initialize storage: %v", err)
+		}
 	}
 
 	app := fiber.New(fiber.Config{

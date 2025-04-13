@@ -27,6 +27,7 @@ type Storage interface {
 	GetUserByPhone(ctx context.Context, phone string) (*models.User, error)
 	UpdateUserLastLogin(ctx context.Context, userID string) error
 	GetDB() *gorm.DB
+	ListTenants(ctx context.Context, page, pageSize int) ([]*models.Tenant, int64, error)
 }
 
 type PostgresStorage struct {
@@ -111,6 +112,23 @@ func (s *PostgresStorage) GetDB() *gorm.DB {
 	return s.db
 }
 
+func (s *PostgresStorage) ListTenants(ctx context.Context, page, pageSize int) ([]*models.Tenant, int64, error) {
+	var tenants []*models.Tenant
+	var total int64
+
+	offset := (page - 1) * pageSize
+
+	if err := s.db.WithContext(ctx).Model(&models.Tenant{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := s.db.WithContext(ctx).Preload("Config").Offset(offset).Limit(pageSize).Find(&tenants).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return tenants, total, nil
+}
+
 func (s *InMemoryStorage) CreateTenant(ctx context.Context, tenant *models.Tenant) error {
 	s.tenants[tenant.ID] = tenant
 	return nil
@@ -167,6 +185,27 @@ func (s *InMemoryStorage) UpdateUserLastLogin(ctx context.Context, userID string
 
 func (s *InMemoryStorage) GetDB() *gorm.DB {
 	return nil
+}
+
+func (s *InMemoryStorage) ListTenants(ctx context.Context, page, pageSize int) ([]*models.Tenant, int64, error) {
+	var tenants []*models.Tenant
+	total := int64(len(s.tenants))
+
+	offset := (page - 1) * pageSize
+	end := offset + pageSize
+	if end > int(total) {
+		end = int(total)
+	}
+
+	for _, tenant := range s.tenants {
+		tenants = append(tenants, tenant)
+	}
+
+	if offset >= int(total) {
+		return []*models.Tenant{}, total, nil
+	}
+
+	return tenants[offset:end], total, nil
 }
 
 func BuildDSN(cfg config.DatabaseConfig) string {

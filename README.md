@@ -50,191 +50,257 @@ RATE_LIMIT=100
 RATE_LIMIT_WINDOW=60
 ```
 
-## API Endpoints
+## API Documentation
 
-### Public Endpoints
+### Authentication
 
-#### Create Tenant
-- `POST /api/v1/tenants`
-  - Creates a new tenant with its configuration
-  - Request body:
-    ```json
-    {
-      "name": "string",
-      "description": "string",
-      "auth_method": "username_password",
-      "jwt_duration": 3600,
-      "rate_limit_ip": 100,
-      "rate_limit_user": 50,
-      "rate_limit_window": 60
+All protected endpoints require a JWT token in the Authorization header:
+```
+Authorization: Bearer <token>
+```
+
+### Endpoints
+
+#### Authentication
+
+##### Login
+- **URL**: `POST /api/v1/:tenant_id/login`
+- **Description**: Authenticate a user and get a JWT token
+- **Rate Limit**: 5 requests per minute
+- **Request**:
+```json
+{
+  "username": "string",
+  "password": "string",
+  "phone": "string" // optional
+}
+```
+- **Response**:
+```json
+{
+  "token": "string",
+  "expires_in": 0,
+  "user": {
+    "id": "string",
+    "tenant_id": "string",
+    "username": "string",
+    "phone": "string",
+    "role": "string",
+    "last_login": "string",
+    "created_at": "string",
+    "updated_at": "string"
+  }
+}
+```
+
+##### Validate Token
+- **URL**: `POST /api/v1/validate-token`
+- **Description**: Validate a JWT token
+- **Request**:
+```json
+{
+  "token": "string"
+}
+```
+- **Response**:
+```json
+{
+  "valid": true,
+  "user": {
+    "id": "string",
+    "username": "string",
+    "role": "string"
+  },
+  "tenant": {
+    "id": "string",
+    "name": "string",
+    "config": {
+      "id": "string",
+      "tenant_id": "string",
+      "auth_method": "string",
+      "jwt_duration": 0,
+      "rate_limit_ip": 0,
+      "rate_limit_user": 0,
+      "rate_limit_window": 0,
+      "created_at": "string",
+      "updated_at": "string"
     }
-    ```
-  - Response:
-    ```json
+  },
+  "expires_at": "string"
+}
+```
+
+#### Tenants
+
+##### Create Tenant
+- **URL**: `POST /api/v1/tenants`
+- **Description**: Create a new tenant
+- **Request**:
+```json
+{
+  "name": "string",
+  "description": "string",
+  "auth_method": "username_password",
+  "jwt_duration": 0,
+  "rate_limit_ip": 0,
+  "rate_limit_user": 0,
+  "rate_limit_window": 0
+}
+```
+- **Response**:
+```json
+{
+  "id": "string",
+  "name": "string",
+  "config": {
+    "id": "string",
+    "tenant_id": "string",
+    "auth_method": "string",
+    "jwt_duration": 0,
+    "rate_limit_ip": 0,
+    "rate_limit_user": 0,
+    "rate_limit_window": 0,
+    "created_at": "string",
+    "updated_at": "string"
+  },
+  "created_at": "string",
+  "updated_at": "string"
+}
+```
+
+##### Get Tenant
+- **URL**: `GET /api/v1/tenants/:tenant_id`
+- **Description**: Get a single tenant by ID
+- **Authentication**: Required
+- **Response**:
+```json
+{
+  "id": "string",
+  "name": "string",
+  "config": {
+    "id": "string",
+    "tenant_id": "string",
+    "auth_method": "string",
+    "jwt_duration": 0,
+    "rate_limit_ip": 0,
+    "rate_limit_user": 0,
+    "rate_limit_window": 0,
+    "created_at": "string",
+    "updated_at": "string"
+  },
+  "created_at": "string",
+  "updated_at": "string"
+}
+```
+
+##### List Tenants
+- **URL**: `GET /api/v1/tenants`
+- **Description**: List all tenants with pagination
+- **Authentication**: Required
+- **Query Parameters**:
+  - `page` (optional, default: 1): Page number
+  - `page_size` (optional, default: 10): Number of items per page
+- **Response**:
+```json
+{
+  "tenants": [
     {
       "id": "string",
       "name": "string",
-      "description": "string",
       "config": {
-        "auth_method": "username_password",
-        "jwt_duration": 3600,
-        "rate_limit_ip": 100,
-        "rate_limit_user": 50,
-        "rate_limit_window": 60,
-        "created_at": "2024-04-12T12:00:00Z",
-        "updated_at": "2024-04-12T12:00:00Z"
-      }
-    }
-    ```
-
-#### Login
-- `POST /api/v1/:tenant_id/login`
-  - Authenticates a user with the specified tenant
-  - Rate Limited: Yes (5 requests per minute)
-  - Request body:
-    ```json
-    {
-      "username": "string",
-      "password": "string"
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "token": "string",
-      "expires_in": 3600,
-      "user": {
         "id": "string",
         "tenant_id": "string",
-        "username": "string",
-        "role": "string",
-        "last_login": "2024-04-12T12:00:00Z",
-        "created_at": "2024-04-12T12:00:00Z",
-        "updated_at": "2024-04-12T12:00:00Z"
-      }
-    }
-    ```
-
-#### Validate Token
-- `POST /api/v1/validate-token`
-  - Validates a JWT token and returns user/tenant information
-  - Headers:
-    ```
-    Authorization: Bearer <token>
-    ```
-  - Response:
-    ```json
-    {
-      "valid": true,
-      "user": {
-        "id": "string",
-        "username": "string",
-        "role": "string"
+        "auth_method": "string",
+        "jwt_duration": 0,
+        "rate_limit_ip": 0,
+        "rate_limit_user": 0,
+        "rate_limit_window": 0,
+        "created_at": "string",
+        "updated_at": "string"
       },
-      "tenant": {
-        "id": "string",
-        "name": "string",
-        "config": {
-          "auth_method": "username_password",
-          "jwt_duration": 3600,
-          "rate_limit_ip": 100,
-          "rate_limit_user": 50,
-          "rate_limit_window": 60
-        }
-      },
-      "expires_at": "2024-04-12T12:00:00Z"
+      "created_at": "string",
+      "updated_at": "string"
     }
-    ```
+  ],
+  "total": 0,
+  "page": 0,
+  "page_size": 0,
+  "total_pages": 0
+}
+```
 
-### Protected Endpoints (Requires Authentication)
+##### Update Tenant Config
+- **URL**: `PUT /api/v1/tenants/:tenant_id/config`
+- **Description**: Update tenant configuration
+- **Authentication**: Required
+- **Request**:
+```json
+{
+  "auth_method": "username_password",
+  "jwt_duration": 0,
+  "rate_limit_ip": 0,
+  "rate_limit_user": 0,
+  "rate_limit_window": 0
+}
+```
+- **Response**:
+```json
+{
+  "message": "Tenant configuration updated successfully",
+  "config": {
+    "id": "string",
+    "tenant_id": "string",
+    "auth_method": "string",
+    "jwt_duration": 0,
+    "rate_limit_ip": 0,
+    "rate_limit_user": 0,
+    "rate_limit_window": 0,
+    "created_at": "string",
+    "updated_at": "string"
+  }
+}
+```
 
-#### Get Current User
-- `GET /api/v1/me`
-  - Returns information about the currently authenticated user
-  - Headers:
-    ```
-    Authorization: Bearer <token>
-    ```
-  - Response:
-    ```json
+#### Users
+
+##### List Users
+- **URL**: `GET /api/v1/tenants/:tenant_id/users`
+- **Description**: List users for a tenant with pagination
+- **Authentication**: Required
+- **Query Parameters**:
+  - `page` (optional, default: 1): Page number
+  - `page_size` (optional, default: 10): Number of items per page
+  - `search` (optional): Search term for username or phone
+  - `role` (optional): Filter by role
+  - `sort_by` (optional): Sort field (username, role, created_at, last_login)
+  - `sort_dir` (optional): Sort direction (asc, desc)
+- **Response**:
+```json
+{
+  "users": [
     {
       "id": "string",
       "tenant_id": "string",
       "username": "string",
+      "phone": "string",
       "role": "string",
-      "last_login": "2024-04-12T12:00:00Z",
-      "created_at": "2024-04-12T12:00:00Z",
-      "updated_at": "2024-04-12T12:00:00Z"
+      "last_login": "string",
+      "created_at": "string",
+      "updated_at": "string"
     }
-    ```
+  ],
+  "total": 0,
+  "page": 0,
+  "page_size": 0,
+  "total_pages": 0
+}
+```
 
-#### Update Tenant Configuration
-- `PUT /api/v1/tenants/:tenant_id/config`
-  - Updates the configuration for a specific tenant
-  - Headers:
-    ```
-    Authorization: Bearer <token>
-    ```
-  - Request body:
-    ```json
-    {
-      "auth_method": "username_password",
-      "jwt_duration": 3600,
-      "rate_limit_ip": 100,
-      "rate_limit_user": 50,
-      "rate_limit_window": 60
-    }
-    ```
-  - Response:
-    ```json
-    {
-      "message": "Tenant configuration updated successfully",
-      "config": {
-        "auth_method": "username_password",
-        "jwt_duration": 3600,
-        "rate_limit_ip": 100,
-        "rate_limit_user": 50,
-        "rate_limit_window": 60,
-        "created_at": "2024-04-12T12:00:00Z",
-        "updated_at": "2024-04-12T12:30:00Z"
-      }
-    }
-    ```
-
-#### List Users
-- `GET /api/v1/tenants/:tenant_id/users`
-  - Lists users with pagination, search, filtering, and sorting
-  - Headers:
-    ```
-    Authorization: Bearer <token>
-    ```
-  - Query Parameters:
-    - `page`: Page number (default: 1)
-    - `page_size`: Number of items per page (default: 10, max: 100)
-    - `search`: Search term for username or phone
-    - `role`: Filter by user role
-    - `sort_by`: Field to sort by (username, role, created_at, last_login)
-    - `sort_dir`: Sort direction (asc, desc)
-  - Response:
-    ```json
-    {
-      "users": [
-        {
-          "id": "string",
-          "tenant_id": "string",
-          "username": "string",
-          "role": "string",
-          "last_login": "2024-04-12T12:00:00Z",
-          "created_at": "2024-04-12T12:00:00Z",
-          "updated_at": "2024-04-12T12:00:00Z"
-        }
-      ],
-      "total": 100,
-      "page": 1,
-      "page_size": 10,
-      "total_pages": 10
-    }
-    ```
+##### Get Current User
+- **URL**: `GET /api/v1/me`
+- **Description**: Get current user information
+- **Authentication**: Required
+- **Response**: JWT claims of the current user
 
 ## Development
 
@@ -243,7 +309,23 @@ RATE_LIMIT_WINDOW=60
    ```bash
    go mod download
    ```
-3. Create a `.env` file with your configuration
+3. Create a `.env` file with your configuration. For development, you only need these variables:
+   ```env
+   # Server Configuration
+   PORT=8080
+   ENVIRONMENT=development
+
+   # JWT Configuration
+   JWT_SECRET=your-secret-key
+   JWT_EXPIRATION_MINUTES=60
+
+   # Rate Limiting
+   RATE_LIMIT_ENABLED=true
+   RATE_LIMIT=100
+   RATE_LIMIT_WINDOW=60
+   ```
+   Note: In development environment, the service uses in-memory storage, so you don't need to configure PostgreSQL or Redis.
+
 4. Run the server:
    ```bash
    go run cmd/main.go
@@ -256,7 +338,36 @@ RATE_LIMIT_WINDOW=60
    go build -o heimdall cmd/main.go
    ```
 2. Set up PostgreSQL and Redis
-3. Configure environment variables
+3. Configure environment variables. For production, you need all variables:
+   ```env
+   # Server Configuration
+   PORT=8080
+   ENVIRONMENT=production
+
+   # Database Configuration
+   DB_DRIVER=postgres
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=postgres
+   DB_PASSWORD=postgres
+   DB_NAME=heimdall
+   DB_SSL_MODE=disable
+
+   # Redis Configuration
+   REDIS_HOST=localhost
+   REDIS_PORT=6379
+   REDIS_PASSWORD=
+   REDIS_DB=0
+
+   # JWT Configuration
+   JWT_SECRET=your-secret-key
+   JWT_EXPIRATION_MINUTES=60
+
+   # Rate Limiting
+   RATE_LIMIT_ENABLED=true
+   RATE_LIMIT=100
+   RATE_LIMIT_WINDOW=60
+   ```
 4. Run the application:
    ```bash
    ./heimdall
