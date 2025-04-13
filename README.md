@@ -15,32 +15,6 @@ A high-performance authentication microservice built with Go and Fiber.
 - Redis caching in production
 - Environment-based configuration
 
-## Project Structure
-
-```
-heimdall/
-├── cmd/
-│   └── heimdall/
-│       └── main.go
-├── internal/
-│   ├── config/
-│   │   └── config.go
-│   ├── handlers/
-│   │   └── auth.go
-│   ├── middleware/
-│   │   ├── auth.go
-│   │   └── rate_limiter.go
-│   ├── models/
-│   │   ├── tenant.go
-│   │   └── user.go
-│   └── storage/
-│       └── storage.go
-├── pkg/
-│   ├── auth/
-│   └── rate_limiter/
-├── .env
-└── README.md
-```
 
 ## Configuration
 
@@ -272,14 +246,14 @@ RATE_LIMIT_WINDOW=60
 3. Create a `.env` file with your configuration
 4. Run the server:
    ```bash
-   go run cmd/heimdall/main.go
+   go run cmd/main.go
    ```
 
 ## Production
 
 1. Build the application:
    ```bash
-   go build -o heimdall cmd/heimdall/main.go
+   go build -o heimdall cmd/main.go
    ```
 2. Set up PostgreSQL and Redis
 3. Configure environment variables
