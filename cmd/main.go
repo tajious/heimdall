@@ -15,35 +15,29 @@ import (
 )
 
 func main() {
-	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Initialize storage
 	dsn := storage.BuildDSN(cfg.Database)
 	store, err := storage.NewPostgresStorage(dsn)
 	if err != nil {
 		log.Fatalf("Failed to initialize storage: %v", err)
 	}
 
-	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
 		AppName: "Heimdall",
 	})
 
-	// Middleware
 	app.Use(cors.New())
 	app.Use(logger.New())
 
-	// Initialize handlers and middleware
 	authHandler := handlers.NewAuthHandler(store, cfg.JWT.Secret, cfg.JWT.AccessExpiration)
 	tenantHandler := handlers.NewTenantHandler(store)
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWT.Secret)
 	rateLimiter := middleware.NewRateLimiter(middleware.NewMemoryStore(), true)
 
-	// Initialize router
 	apiRouter := router.NewRouter(
 		app,
 		authHandler,
@@ -52,10 +46,8 @@ func main() {
 		rateLimiter,
 	)
 
-	// Setup routes
 	apiRouter.SetupRoutes()
 
-	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"

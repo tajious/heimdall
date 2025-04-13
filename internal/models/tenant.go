@@ -22,15 +22,14 @@ type TenantConfig struct {
 	ID              string     `json:"id" gorm:"primaryKey"`
 	TenantID        string     `json:"tenant_id" gorm:"not null;uniqueIndex"`
 	AuthMethod      AuthMethod `json:"auth_method" gorm:"not null"`
-	JWTDuration     int        `json:"jwt_duration" gorm:"not null"` // in minutes
+	JWTDuration     int        `json:"jwt_duration" gorm:"not null"`
 	RateLimitIP     int        `json:"rate_limit_ip" gorm:"not null"`
 	RateLimitUser   int        `json:"rate_limit_user" gorm:"not null"`
-	RateLimitWindow int        `json:"rate_limit_window" gorm:"not null"` // in seconds
+	RateLimitWindow int        `json:"rate_limit_window" gorm:"not null"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 }
 
-// UpdateConfig updates the tenant's configuration
 func (c *TenantConfig) Update(authMethod AuthMethod, jwtDuration, rateLimitIP, rateLimitUser, rateLimitWindow int) {
 	c.AuthMethod = authMethod
 	c.JWTDuration = jwtDuration
@@ -39,14 +38,13 @@ func (c *TenantConfig) Update(authMethod AuthMethod, jwtDuration, rateLimitIP, r
 	c.RateLimitWindow = rateLimitWindow
 }
 
-// DefaultConfig creates a new tenant configuration with default values
 func DefaultConfig(tenantID string) *TenantConfig {
 	return &TenantConfig{
 		TenantID:        tenantID,
 		AuthMethod:      UsernamePassword,
-		JWTDuration:     60,  // 1 hour
-		RateLimitIP:     100, // 100 requests
-		RateLimitUser:   50,  // 50 requests
-		RateLimitWindow: 60,  // 1 minute
+		JWTDuration:     60,
+		RateLimitIP:     100,
+		RateLimitUser:   50,
+		RateLimitWindow: 60,
 	}
 }

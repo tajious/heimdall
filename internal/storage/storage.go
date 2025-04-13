@@ -169,7 +169,6 @@ func (s *InMemoryStorage) GetDB() *gorm.DB {
 	return nil
 }
 
-// BuildDSN constructs a PostgreSQL connection string from a config.DatabaseConfig
 func BuildDSN(cfg config.DatabaseConfig) string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Host,

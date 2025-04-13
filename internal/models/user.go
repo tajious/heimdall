@@ -25,7 +25,7 @@ type User struct {
 	ID        string    `json:"id" gorm:"primaryKey"`
 	TenantID  string    `json:"tenant_id" gorm:"not null;index"`
 	Username  string    `json:"username" gorm:"not null;uniqueIndex"`
-	Password  string    `json:"-" gorm:"not null"` // Hashed password
+	Password  string    `json:"-" gorm:"not null"`
 	Phone     string    `json:"phone,omitempty" gorm:"uniqueIndex"`
 	Role      Role      `json:"role" gorm:"not null"`
 	LastLogin time.Time `json:"last_login"`

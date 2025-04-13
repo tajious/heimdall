@@ -33,7 +33,6 @@ func NewRouter(
 }
 
 func (r *Router) SetupRoutes() {
-	// Public routes
 	r.app.Post("/api/v1/tenants", r.tenantHandler.CreateTenant)
 	r.app.Post("/api/v1/:tenant_id/login", r.rateLimiter.RateLimit(middleware.RateLimitConfig{
 		Enabled: true,
@@ -42,7 +41,6 @@ func (r *Router) SetupRoutes() {
 	}), r.authHandler.Login)
 	r.app.Post("/api/v1/validate-token", r.authHandler.ValidateToken)
 
-	// Protected routes
 	protected := r.app.Group("/api/v1", r.authMiddleware.Authenticate())
 	protected.Get("/me", func(c *fiber.Ctx) error {
 		user := c.Locals("user")

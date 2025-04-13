@@ -11,13 +11,11 @@ import (
 	"github.com/tajious/heimdall/internal/models"
 )
 
-// RateLimitStore defines the interface for rate limit storage
 type RateLimitStore interface {
 	Increment(ctx context.Context, key string, window time.Duration) (int, error)
 	GetCount(ctx context.Context, key string) (int, error)
 }
 
-// RedisStore implements RateLimitStore using Redis
 type RedisStore struct {
 	client *redis.Client
 }
@@ -27,16 +25,12 @@ func NewRedisStore(client *redis.Client) *RedisStore {
 }
 
 func (s *RedisStore) Increment(ctx context.Context, key string, window time.Duration) (int, error) {
-	// Use Redis pipeline for atomic operations
 	pipe := s.client.Pipeline()
 
-	// Increment the counter
 	incr := pipe.Incr(ctx, key)
 
-	// Set expiration if this is the first request
 	pipe.Expire(ctx, key, window)
 
-	// Execute pipeline
 	if _, err := pipe.Exec(ctx); err != nil {
 		return 0, err
 	}
@@ -52,7 +46,6 @@ func (s *RedisStore) GetCount(ctx context.Context, key string) (int, error) {
 	return count, err
 }
 
-// MemoryStore implements RateLimitStore using in-memory storage
 type MemoryStore struct {
 	mu    sync.RWMutex
 	store map[string]*RateLimitEntry
@@ -73,7 +66,6 @@ func (s *MemoryStore) Increment(ctx context.Context, key string, window time.Dur
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Clean up expired entries
 	now := time.Now()
 	for k, entry := range s.store {
 		if now.After(entry.ExpiresAt) {
@@ -81,7 +73,6 @@ func (s *MemoryStore) Increment(ctx context.Context, key string, window time.Dur
 		}
 	}
 
-	// Get or create entry
 	entry, exists := s.store[key]
 	if !exists {
 		entry = &RateLimitEntry{
@@ -91,7 +82,6 @@ func (s *MemoryStore) Increment(ctx context.Context, key string, window time.Dur
 		s.store[key] = entry
 	}
 
-	// Increment count
 	entry.Count++
 	return entry.Count, nil
 }
@@ -112,7 +102,6 @@ func (s *MemoryStore) GetCount(ctx context.Context, key string) (int, error) {
 	return entry.Count, nil
 }
 
-// RateLimiter uses a RateLimitStore to enforce rate limits
 type RateLimiter struct {
 	store   RateLimitStore
 	enabled bool
@@ -137,30 +126,25 @@ func (r *RateLimiter) RateLimit(config RateLimitConfig) fiber.Handler {
 			return c.Next()
 		}
 
-		// Get the IP address
 		ip := c.IP()
 		if ip == "" {
 			ip = c.Context().RemoteIP().String()
 		}
 
-		// Get the user ID if available
 		userID := ""
 		if claims, ok := c.Locals("user").(*models.Claims); ok {
 			userID = claims.UserID
 		}
 
-		// Create rate limit keys
 		ipKey := fmt.Sprintf("rate_limit:ip:%s", ip)
 		userKey := fmt.Sprintf("rate_limit:user:%s", userID)
 
-		// Check IP rate limit
 		if err := r.checkRateLimit(c.Context(), ipKey, config); err != nil {
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 				"error": "Too many requests from this IP",
 			})
 		}
 
-		// Check user rate limit if user is authenticated
 		if userID != "" {
 			if err := r.checkRateLimit(c.Context(), userKey, config); err != nil {
 				return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{

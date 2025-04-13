@@ -27,7 +27,6 @@ func (m *AuthMiddleware) Authenticate() fiber.Handler {
 			})
 		}
 
-		// Check if the header is in the format "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -54,7 +53,6 @@ func (m *AuthMiddleware) Authenticate() fiber.Handler {
 			})
 		}
 
-		// Add the claims to the context
 		c.Locals("user", claims)
 		return c.Next()
 	}
